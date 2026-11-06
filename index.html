@@ -263,13 +263,13 @@
       try {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("language", "ar"); // تم تعديل رمز اللغة هنا ليوافق معيار السيرفر
+        // تم إزالة باراميتر اللغة نهائياً لاعتماد الكشف التلقائي بالخادم
         formData.append("isOverlayRequired", "false");
         formData.append("detectOrientation", "true");
         formData.append("scale", "true");
         formData.append("OCREngine", "2");
 
-        const apiKey = "K88414436888957"; 
+        const apiKey = "K8210004011043188957"; 
 
         const response = await fetch("https://api.ocr.space/parse/image", {
           method: "POST",
