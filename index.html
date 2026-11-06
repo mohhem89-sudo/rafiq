@@ -115,7 +115,7 @@
           </div>
         </div>
 
-        <!-- رفع ملف شامل لكافة الأنباط -->
+        <!-- رفع ملف شامل لكافة الأنواع -->
         <div class="bg-gray-900/90 border border-emerald-800/60 rounded-3xl p-4 shadow-lg space-y-3">
           <h3 class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
             <i class="fa-solid fa-file-arrow-up"></i> رفع أي ملف للمناقشة والاستخراج الشامل
@@ -198,7 +198,7 @@
 
   </div>
 
-  <!-- JavaScript المحدث لدعم قراءة أي ملف -->
+  <!-- JavaScript المحدث للتعامل مع المفتاح الشخصي وإظهار الأخطاء بوضوح -->
   <script>
     let isListening = false;
 
@@ -239,7 +239,7 @@
       const btn = document.getElementById('process-btn');
 
       if (!fileInput.files || fileInput.files.length === 0) {
-        alert("يرجى اختيار ملف أولاً!");
+        alert("يرجى اختيار ملف أو صورة أولاً!");
         return;
       }
 
@@ -248,7 +248,7 @@
       btn.disabled = true;
       resultBox.textContent = "جاري تحليل الملف واستخراج محتواه بذكاء...";
 
-      // لو الملف نصي خالص (TXT)، نقرأه مباشرة بدون حاجة لـ API خارجي
+      // لو الملف نصي خالص (TXT)
       if (file.type === "text/plain") {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -261,17 +261,17 @@
         return;
       }
 
-      // لأي ملف آخر (صور، PDF، مستندات) يتم إرساله لمحرك الـ OCR الشامل
       try {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("language", "ara");
         formData.append("isOverlayRequired", false);
-        formData.append("detectOrientation", true);
-        formData.append("scale", true);
-        formData.append("OCREngine", 2); // محرك متطور لقراءة النصوص العربية بدقة عالية
+        formData.append("detectOrientation", "true");
+        formData.append("scale", "true");
+        formData.append("OCREngine", "2");
 
-        const apiKey = "K8210004011043188957"; // مفتاح تجريبي عام
+        // استبدل المفتاح أدناه بمفتاحك الشخصي الجديد
+        const apiKey = "K8210004011043188957"; 
 
         const response = await fetch("https://api.ocr.space/parse/image", {
           method: "POST",
@@ -285,25 +285,34 @@
         loading.classList.add('hidden');
         btn.disabled = false;
 
+        // التحقق من وجود خطأ راجع من السيرفر
+        if (data.IsErroredOnProcessing) {
+          let errMessage = data.ErrorMessage ? data.ErrorMessage[0] : "حدث خطأ غير معروف من السيرفر.";
+          resultBox.textContent = `❌ خطأ من خدمة الـ OCR: ${errMessage}`;
+          return;
+        }
+
         if (data.ParsedResults && data.ParsedResults.length > 0) {
           let fullText = "";
           data.ParsedResults.forEach(page => {
-            fullText += page.ParsedText + "\n";
+            if (page.ParsedText) {
+              fullText += page.ParsedText + "\n";
+            }
           });
 
           if (fullText.trim().length > 0) {
             resultBox.textContent = fullText;
             speakText("تم استخراج محتوى الملف بنجاح!");
           } else {
-            resultBox.textContent = "⚠️ لم يتم العثور على نص واضح في هذا الملف. تأكد من جودة الملف أو وضوح الكلمات داخله.";
+            resultBox.textContent = "⚠️ لم يتم العثور على نص واضح في هذا الملف. تأكد أن الصورة أو المستند يحتوي على كتابة واضحة وليست مظلمة.";
           }
         } else {
-          resultBox.textContent = "⚠️ حدث خطأ في معالجة المستند. حاول رفع صورة أو ملف أصغر حجماً.";
+          resultBox.textContent = "⚠️ لم يتم استرجاع نتائج نصية من الخادم.";
         }
       } catch (error) {
         loading.classList.add('hidden');
         btn.disabled = false;
-        resultBox.textContent = `❌ تعذر الاتصال بخدمة التحليل: ${error.message}`;
+        resultBox.textContent = `❌ حدث خطأ في الاتصال بالشبكة: ${error.message}`;
       }
     }
 
